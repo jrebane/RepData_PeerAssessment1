@@ -1,9 +1,4 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 # Preparing the Data and Environment
 
@@ -11,12 +6,55 @@ output:
 
 First, we want to load the libraries will drive the rest of our analysis.
 
-```{r}
+
+```r
 require(dplyr)
+```
+
+```
+## Loading required package: dplyr
+## 
+## Attaching package: 'dplyr'
+## 
+## The following object is masked from 'package:stats':
+## 
+##     filter
+## 
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
+```r
 require(lubridate)
+```
+
+```
+## Loading required package: lubridate
+```
+
+```r
 require(ggplot2)
+```
+
+```
+## Loading required package: ggplot2
+```
+
+```r
 require(ggthemes)
+```
+
+```
+## Loading required package: ggthemes
+```
+
+```r
 require(timeDate)
+```
+
+```
+## Loading required package: timeDate
 ```
 
 ## Loading and preprocessing the data
@@ -24,7 +62,8 @@ require(timeDate)
 The data loading is set up in such a way that, if the `activity.csv` file is not present in the working directory, it will download it nonetheless. If the csv file is not in working directory, this code will download it from the repository and extract the file to the working directory
 
 
-```{r}
+
+```r
 fURL <- "https://github.com/jrebane/RepData_PeerAssessment1/blob/master/activity.zip?raw=true"
 zipFileName <- "./activity.zip"
 csvFileName <- "./activity.csv"
@@ -36,11 +75,16 @@ if (!file.exists(csvFileName)){
 } else {message("Data file found in working directory")}
 ```
 
+```
+## Data file found in working directory
+```
+
 Next, the following code takes the `activity.csv` file, determines whether there is enough memory to read in the table and, if there is,
 it reads the file into a table called `tblsteps`. It also converts the `date` column values to dates using the `ymd` function from `lubridate`.
 
 
-```{r}
+
+```r
 if (!exists("tblSteps")){
         ## Calculate a rough estimate of how much memory the dataset will require
         ## in memory before reading into R. Make sure your computer has enough memory
@@ -60,13 +104,18 @@ if (!exists("tblSteps")){
         }} else{ message("Using data table from memory")}
 ```
 
+```
+## Using data table from memory
+```
+
 # What is mean total number of steps taken per day?
 
 ## Loading the Data and Ignoring Missing Values
 
 First, it is necessary to prepare the dataset for use in plotting by grouping and summarizing the sum of steps per day by date. This is done by leveraging the `dplyr` package as used in the code below. We used `na.rm = TRUE` here to ignore the missing values in the dataset.
 
-```{r}
+
+```r
 stepsGroupedByDate <- 
         tblSteps %>%
         group_by(date) %>%
@@ -77,7 +126,8 @@ stepsGroupedByDate <-
 
 Using the `ggplot2` package, we can then make a histogram of the total number of steps taken each day. The code that creates the histogram can be found below.
 
-```{r}
+
+```r
 xlab1 <- "Total Number of Steps Taken in a Day"
 ylab1 <- "Frequency"
 title1 <- "Histogram of Total Steps Taken per Day"
@@ -93,31 +143,45 @@ table1 <- ggplot(stepsGroupedByDate, aes(x=count)) +
 
 Here is the corresponding histogram.
 
-```{r}
+
+```r
 print(table1)
 ```
+
+![plot of chunk unnamed-chunk-6](./PA1_template_files/figure-html/unnamed-chunk-6.png) 
 
 ## Mean and Median Number of Steps per Day
 
 We then take the mean of the `count` column within `stepsGroupedByDate` and store that value in `meansteps`. The mean value is then printed below.
 
-```{r}
+
+```r
 meansteps <- mean(stepsGroupedByDate$count)
 print(meansteps)
 ```
 
+```
+## [1] 9354
+```
+
 Similarly, we take the median of the `count` column within `stepsGroupedByDate` and store that value in `mediansteps`. The median value is then printed below.
 
-```{r}
+
+```r
 mediansteps <- median(stepsGroupedByDate$count)
 print(mediansteps)
+```
+
+```
+## [1] 10395
 ```
 
 # What is the average daily activity pattern?
 
 Before we delve into creating the time series plot, we create a dataset to draw from which comprises the mean numbers of steps by interval, with NA values removed. By leveraging the `dplyr` package again, we are able to create the corresponding data frame `stepsGroupedByInterval` with the code below.
 
-```{r}
+
+```r
 stepsGroupedByInterval <- 
         tblSteps %>%
         group_by(interval) %>%
@@ -128,7 +192,8 @@ stepsGroupedByInterval <-
 
 Using `ggplot2`, we can plot the average number of steps per five minute interval that we collected into the `stepsGroupByInterval` object.
 
-```{r}
+
+```r
 xlab2 <- "5 Minute Interval"
 ylab2 <- "Average Number of Steps"
 title2 <- "Average Number of Steps Taken Per 5 Minute Interval"
@@ -143,17 +208,28 @@ table2 <- ggplot(stepsGroupedByInterval, aes(x=interval, y=average)) +
 
 And here is the corresponding time series plot.
 
-```{r}
+
+```r
 print(table2)
 ```
+
+![plot of chunk unnamed-chunk-11](./PA1_template_files/figure-html/unnamed-chunk-11.png) 
 
 ## 5 Minute Interval Max
 
 Using the code below, we can find the row showing the interval with the maximum number of average steps.
 
-```{r}
+
+```r
 stepsMax <- stepsGroupedByInterval[which.max(stepsGroupedByInterval$average),]
 print(stepsMax)
+```
+
+```
+## Source: local data frame [1 x 2]
+## 
+##   interval average
+## 1      835   206.2
 ```
 
 # Imputing missing values
@@ -162,8 +238,13 @@ print(stepsMax)
 
 The calculation to determine the total number of missing values in the dataset is relatively straightforward, simply summing the NA values in the `steps` column of `tblSteps`.
 
-```{r}
+
+```r
 sum(is.na(tblSteps$steps))
+```
+
+```
+## [1] 2304
 ```
 
 ## Devise a strategy for filling in all of the missing values in the dataset.
@@ -175,7 +256,8 @@ The strategy that we will use to fill in all of the missing values is to replace
 The following code executes on the strategy outlined above and creates a new dataset `tblSteps2` with imputed values filled in for the NA values.
 
 
-```{r}
+
+```r
 tblSteps2 <- tblSteps
 
 tblSteps2$steps[is.na(tblSteps$steps)] <- 
@@ -188,7 +270,8 @@ tblSteps2$steps[is.na(tblSteps$steps)] <-
 
 With this new dataset created, the process of developing a histogram is similar to the previous process.
 
-```{r}
+
+```r
 stepsGroupedByDate2 <- 
         tblSteps2 %>%
         group_by(date) %>%
@@ -209,21 +292,33 @@ table3 <- ggplot(stepsGroupedByDate2, aes(x=count)) +
 print(table3)
 ```
 
+![plot of chunk unnamed-chunk-15](./PA1_template_files/figure-html/unnamed-chunk-15.png) 
+
 ##Calculate and report the mean and median total number of steps taken per day.
 
 We can now take the mean of the `count` column within `stepsGroupedByDate2` and store that value in `meansteps2`. The mean value is then printed below.
 
-```{r}
+
+```r
 meansteps2 <- mean(stepsGroupedByDate2$count)
 print(meansteps2)
+```
+
+```
+## [1] 10766
 ```
 
 Similarly, we can take the median of the `count` column within `stepsGroupedByDate2` and store that value in `mediansteps2`. The median value is then printed below.## 4. b) Median Number of Steps per Day
 
 
-```{r}
+
+```r
 mediansteps2 <- median(stepsGroupedByDate2$count)
 print(mediansteps2)
+```
+
+```
+## [1] 10766
 ```
 
 ## Do these values differ from the estimates from the first part of the assignment? 
@@ -232,16 +327,26 @@ There are two steps to determine the answer to this question. First, we must det
 
 As you can see from the calculation below, the values for the mean do differ.
 
-```{r}
+
+```r
 diffmean <- meansteps2 - meansteps
 print(diffmean)
 ```
 
+```
+## [1] 1412
+```
+
 Also, as you can see from the calculation below, the values for the median differ too.
 
-```{r}
+
+```r
 diffmedian <- mediansteps2 - mediansteps
 print(diffmedian)
+```
+
+```
+## [1] 371.2
 ```
 
 
@@ -259,7 +364,8 @@ For this, I created a new function, `weekdayorweekend()` which would check if a 
 
 From there, I split the dataset into two separate data frames, `weekdaysonly` and `weekendsonly` to facilitate charting.
 
-```{r}
+
+```r
 weekdayorweekend <- function(x) {
         ifelse(isWeekday(x), "Weekday", "Weekend")
 }
@@ -280,7 +386,8 @@ The three steps to making a panel plot for this assignment are:
 
 First, using a similar technique as before, we create the weekday plot.
 
-```{r}
+
+```r
 weekdaySteps <- 
         weekdaysonly %>%
         group_by(interval) %>%
@@ -300,7 +407,8 @@ table4 <- ggplot(weekdaySteps, aes(x=interval, y=average)) +
 
 Then, in a similar fashion again we create the weekend plot.
 
-```{r}
+
+```r
 weekendSteps <- 
         weekendsonly %>%
         group_by(interval) %>%
@@ -320,7 +428,8 @@ table5 <- ggplot(weekendSteps, aes(x=interval, y=average)) +
 
 For the multiple plot function, I have imported the `multiplot()` function from [*Cookbook for R*](http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_(ggplot2)/) which provides a crisp solution to generating panel plots for `ggplot2` plots.
 
-```{r}
+
+```r
 # ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
 # - cols:   Number of columns in layout
 # - layout: A matrix specifying the layout. If present, 'cols' is ignored.
@@ -374,6 +483,13 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
 After that function is imported, it is smooth sailing from here. We simply call the `multiplot()` function on the tables we put together and, voila, the panel plot is created!
 
 
-```{r}
+
+```r
 multiplot(table4, table5, cols=1)
 ```
+
+```
+## Loading required package: grid
+```
+
+![plot of chunk unnamed-chunk-24](./PA1_template_files/figure-html/unnamed-chunk-24.png) 
